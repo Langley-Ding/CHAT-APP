@@ -1,7 +1,7 @@
 const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
-const { addUser, removeUser, getUser, getUserInRoom } = reuqire('./users.js');
+const { addUser, removeUser, getUser, getUsersInRoom } = require('./users.js');
 
 const PORT = process.env.PORT || 5000;
 
@@ -13,17 +13,32 @@ const server = http.createServer(app);
 const io = socketio(server);
 
 io.on('connection', (socket) => {
+    console.log('we have a new connection!!')
     socket.on('join', ({name, room}, callback) => {
-        const { error, user } = addUser({id: socket.id, name, room});
+        console.log(name,room)//刷新页面，会在终端（服务端）打印出名字和房间
+        const { error, user } = addUser({id: socket.id, name, room});//addUser会返回2个可能，error对象或User对象；
         
         if (error) return callback(error);
+
         socket.emit('message', {user: 'admin', text: `${user.name}, welcome to the room ${user.room}`});
-        
         socket.broadcast.to(user.room).emit('message', {user: 'admin', text: `${user.name}, has joined!`});
         socket.join(user.room);
 
-        callback()
+        callback();
+    });
+//emit listener is here! it listens "sendMessage" here! and then it send to the whole server or the room
+//
+    // socket.on('sendMessage', (message, callback) => {
+    //     const user = getUser(socket.id);
+    //     io.to(user.room).emit('message', { user: user.name, text: message});
+    //     callback();
+    // });
+    socket.on('sendMessage', (message, callback) => {
+        const user =getUser(socket.id);
+        io.to(user.room).emit('message', {user:user.name, text:message});
+        callback();
     })
+
     socket.on('disconnect', () => {
         console.log('User had left!!!!');
     })
