@@ -27,9 +27,10 @@ const removeUser = (id) => {
     }
 }
 
-const getUser = (id) => {
-    users.find((user) => user.id === id);// means the user exist!
-}
+// const getUser = (id) => {
+//     users.find((user) => user.id === id);// means the user exist!
+// } 当箭头函数内只有一句语句时，是否还需要大括号
+const getUser = (id) => users.find((user) => user.id === id);
 
 const getUsersInRoom = (room) => {
     users.filter((user) => user.room === room);
